@@ -1,0 +1,10 @@
+<webcam #webcam
+        [trigger]="imageTrigger" (imageCapture)="imageListener$.next($event)"
+        captureImageData=false
+        imageQuality=".25"
+        width="533" height="400">
+</webcam>
+
+<img width="533" height="400"
+     [src]="(imagePartner$ | async)?.image"
+     [id]="(imagePartner$ | async)?.id">
