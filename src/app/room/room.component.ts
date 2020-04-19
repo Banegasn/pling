@@ -1,24 +1,30 @@
-import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
-import { ToastService } from '../services/toast.service';
-import { VideoElementComponent } from './components/video-element.component';
+import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy, HostListener, OnInit } from '@angular/core';
+import { ToastService } from '../services/toast/toast.service';
+import { VideoElementComponent } from './components/video-element/video-element.component';
 import { RoomService } from './services/room.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-call',
-  templateUrl: './call.component.html',
-  styleUrls: ['./call.component.scss'],
+  templateUrl: './room.component.html',
+  styleUrls: ['./room.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CallComponent implements AfterViewInit, OnDestroy {
+export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
 
   @ViewChild('mycam') localCamera: VideoElementComponent;
 
-  private room = 'this-is-a-room-id';
+  private room: string = null;
 
   constructor(
     private _room: RoomService,
-    private _toast: ToastService
+    private _toast: ToastService,
+    private _route: ActivatedRoute
   ) { }
+
+  ngOnInit() {
+    this.room = this._route.snapshot.paramMap.get('id');
+  }
 
   @HostListener('window:beforeunload')
   beforeunloadHandler(): void {

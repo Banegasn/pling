@@ -3,32 +3,28 @@ import { Room } from './room';
 
 export class SocketHandler {
 
-  socketServer: socketio.Server;
+  io: socketio.Server;
   rooms: Room[];
 
   constructor(socketServer: socketio.Server) {
-    this.socketServer = socketServer;
+    this.io = socketServer;
     this.rooms = [];
   }
 
   listen(): void {
-    this.socketServer.on('connection', (socket) => {
+    this.io.on('connection', (socket) => {
       console.log('user connected');
 
       socket.on('join-room', (data) => {
-        const users = this.getRoom(data.room).addUser(data.id).users;
+        const users = this.getRoom(data.room).addUser(socket.id).users;
         socket.join(data.room);
-        socket.to(data.room).emit('join-room', {...data, users});
-
-        console.log('someone has joined the room', data, this.rooms);
+        this.io.in(data.room).emit('join-room', {...data, users});
       });
 
       socket.on('leave-room', (data) => {
-        const users = this.getRoom(data.room).deleteUser(data.id).users;
+        const users = this.getRoom(data.room).deleteUser(socket.id).users;
         socket.leave(data.room);
-        socket.to(data.room).emit('leave-room', {...data, users});
-
-        console.log('someone has left the room', data, this.rooms);
+        socket.in(data.room).emit('leave-room', {...data, users});
       });
 
       socket.on('disconnect', () => {

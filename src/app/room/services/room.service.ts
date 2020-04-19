@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { filter, take, takeUntil } from 'rxjs/operators';
-import { SocketioService } from 'src/app/services/socketio.service';
+import { BehaviorSubject, Subject, merge } from 'rxjs';
+import { filter, take, takeUntil, map } from 'rxjs/operators';
+import { SocketioService } from 'src/app/services/socket.io/socket.io.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +20,16 @@ export class RoomService implements OnDestroy {
     ).subscribe(() =>
       this.joinRoom(this.activeRoom)
     );
+
+    merge(
+      this._socket.listen('join-room'),
+      this._socket.listen('leave-room')
+    ).pipe(
+      map(data => data.users),
+      takeUntil(this._onDestroy)
+    ).subscribe(users => {
+      this.users$.next(users);
+    });
   }
 
   ngOnDestroy(): void {
@@ -38,6 +48,7 @@ export class RoomService implements OnDestroy {
   }
 
   leaveRoom(room: string): void {
+    this.users$.next([]);
     this._socket.emit('leave-room', {room, id: this._socket.id});
     this.activeRoom = null;
   }

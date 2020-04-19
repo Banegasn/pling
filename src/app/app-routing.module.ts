@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { CallComponent } from './call/call.component';
+import { RoomComponent } from './room/room.component';
 
 const routes: Routes = [
-  { path: 'call', component: CallComponent },
+  { path: 'room/:id', component: RoomComponent },
 ];
 
 @NgModule({

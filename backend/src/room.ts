@@ -16,11 +16,11 @@ export class Room {
   }
 
   deleteUser(id: string): Room {
-    this.users = this.users.filter(user => user === id);
+    this.users = this.users.filter(user => user !== id);
     return this;
   }
 
   roomies(id: string): string[] {
-    return this.users.filter(user => user === id);
+    return this.users.filter(user => user !== id);
   }
 }
