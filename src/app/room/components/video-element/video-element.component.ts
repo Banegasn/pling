@@ -1,26 +1,28 @@
-import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, Input } from '@angular/core';
 
 @Component({
   selector: 'app-video-element',
-  template: '<video #video></video>'
+  template: '<video #video autoplay></video>'
 })
 export class VideoElementComponent implements AfterViewInit {
 
   @ViewChild('video') private videoRef: ElementRef;
   private video: HTMLVideoElement;
+  private stream: MediaStream;
 
   constructor() { }
 
+  @Input()
+  set src(stream: MediaStream) {
+    this.stream = stream;
+  }
+  get src(): MediaStream {
+    return this.video.srcObject as MediaStream;
+  }
+
   ngAfterViewInit(): void {
     this.video = this.videoRef.nativeElement as HTMLVideoElement;
-  }
-
-  set src(stream: MediaStream | MediaSource | Blob) {
-    this.video.srcObject = stream;
-  }
-
-  get src(): MediaStream | MediaSource | Blob {
-    return this.video.srcObject;
+    this.video.srcObject = this.stream;
   }
 
   play() {

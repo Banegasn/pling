@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy, HostListener, OnInit } from '@angular/core';
-import { ToastService } from '../services/toast/toast.service';
 import { VideoElementComponent } from './components/video-element/video-element.component';
 import { RoomService } from './services/room.service';
 import { ActivatedRoute } from '@angular/router';
+import { WebrtcService } from './services/webrtc.service';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-call',
@@ -13,17 +15,21 @@ import { ActivatedRoute } from '@angular/router';
 export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
 
   @ViewChild('mycam') localCamera: VideoElementComponent;
+  @ViewChild('roomie') roomieCamera: VideoElementComponent;
 
   private room: string = null;
 
+  roomies$: Observable<any>;
+
   constructor(
     private _room: RoomService,
-    private _toast: ToastService,
+    private _webRTC: WebrtcService,
     private _route: ActivatedRoute
   ) { }
 
   ngOnInit() {
     this.room = this._route.snapshot.paramMap.get('id');
+    this.roomies$ = this._room.roomies$.pipe(tap(console.log));
   }
 
   @HostListener('window:beforeunload')
@@ -32,26 +38,12 @@ export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngAfterViewInit(): void {
-    this.initCamera();
+    this._webRTC.connectToRoom();
     this._room.joinRoom(this.room);
   }
 
   ngOnDestroy(): void {
     this._room.leaveRoom(this.room);
-  }
-
-  initCamera(): void {
-    navigator.getUserMedia(
-      { video: true, audio: true },
-      stream => {
-        this.localCamera.src = stream;
-        this.localCamera.play();
-        this.localCamera.mute();
-      },
-      () => {
-        this._toast.text('unable to access user camera');
-      }
-     );
   }
 
 }

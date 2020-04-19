@@ -23,15 +23,13 @@ export class ToastMessagesComponent implements OnInit, OnDestroy {
       filter(data => data.id !== this._socket.id),
       takeUntil(this._onDestroy),
     ).subscribe(data => {
-      console.log(data);
       this._toast.text('An user has joined the room');
     });
 
     this._socket.listen('leave-room').pipe(
       filter(data => data.id !== this._socket.id),
       takeUntil(this._onDestroy),
-    ).subscribe(data => {
-      console.log(data);
+    ).subscribe((data) => {
       this._toast.text('An user has left the room');
     });
   }

@@ -1,1 +1,5 @@
-<app-video-element #mycam></app-video-element>
+<app-video-element #mycam
+  *ngFor="let roomie of roomies$ | async"
+  [src]="roomie?.stream"
+  id="roomie.id">
+</app-video-element>
