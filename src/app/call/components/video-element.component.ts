@@ -19,6 +19,10 @@ export class VideoElementComponent implements AfterViewInit {
     this.video.srcObject = stream;
   }
 
+  get src(): MediaStream | MediaSource | Blob {
+    return this.video.srcObject;
+  }
+
   play() {
     this.video.play();
   }

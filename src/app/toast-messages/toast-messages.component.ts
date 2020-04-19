@@ -19,17 +19,17 @@ export class ToastMessagesComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this._socket.listen('connected').pipe(
-      tap(console.log),
+    this._socket.listen('join-room').pipe(
       takeUntil(this._onDestroy),
     ).subscribe(data => {
+      console.log(data);
       this._toast.text('An user has joined the room');
     });
 
-    this._socket.listen('disconnected').pipe(
-      tap(console.log),
+    this._socket.listen('leave-room').pipe(
       takeUntil(this._onDestroy),
     ).subscribe(data => {
+      console.log(data);
       this._toast.text('An user has left the room');
     });
   }

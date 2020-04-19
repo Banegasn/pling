@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
 import { ToastService } from '../services/toast.service';
 import { VideoElementComponent } from './components/video-element.component';
 import { RoomService } from './services/room.service';
@@ -12,13 +12,18 @@ import { RoomService } from './services/room.service';
 export class CallComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('mycam') localCamera: VideoElementComponent;
-  @ViewChild('partnercam') partnerCamera: VideoElementComponent;
+
   private room = 'this-is-a-room-id';
 
   constructor(
     private _room: RoomService,
     private _toast: ToastService
   ) { }
+
+  @HostListener('window:beforeunload')
+  beforeunloadHandler(): void {
+    this._room.leaveRoom(this.room);
+  }
 
   ngAfterViewInit(): void {
     this.initCamera();
@@ -29,7 +34,7 @@ export class CallComponent implements AfterViewInit, OnDestroy {
     this._room.leaveRoom(this.room);
   }
 
-  initCamera() {
+  initCamera(): void {
     navigator.getUserMedia(
       { video: true, audio: true },
       stream => {
