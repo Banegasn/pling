@@ -18,6 +18,7 @@ import { MatListModule } from '@angular/material/list';
 import { ToastMessagesComponent } from './toast-messages/toast-messages.component';
 import { TextToastComponent } from './toast-messages/templates/text-toast.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { VideoElementComponent } from './call/components/video-element.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     CallComponent,
     NavComponent,
     ToastMessagesComponent,
-    TextToastComponent
+    TextToastComponent,
+    VideoElementComponent
   ],
   imports: [
     BrowserModule,

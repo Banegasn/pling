@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "dev": "concurrently \"cd backend && npm run start\" \"npm run start\"",
+    "dev": "concurrently \"cd backend && npm run start\" \"npm run start --open\"",
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",

@@ -11,7 +11,7 @@ export class SocketioService {
   socket: SocketIOClient.Socket;
 
   constructor() {
-    this.socket = io(environment.SOCKET_ENDPOINT);
+    this.socket = io(environment.SOCKET_ENDPOINT, {transports: ['websocket']});
   }
 
   listen(event: string): Observable<any> {

@@ -1,10 +1,7 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, ViewChild } from '@angular/core';
-import { WebcamImage } from 'ngx-webcam';
-import { interval, Subject, Observable } from 'rxjs';
-import { map, switchMap, tap, startWith, shareReplay } from 'rxjs/operators';
-import { SocketioService } from '../services/socketio.service';
-
-const FPS = 10;
+import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { ToastService } from '../services/toast.service';
+import { VideoElementComponent } from './components/video-element.component';
+import { RoomService } from './services/room.service';
 
 @Component({
   selector: 'app-call',
@@ -12,32 +9,38 @@ const FPS = 10;
   styleUrls: ['./call.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CallComponent implements OnInit {
+export class CallComponent implements AfterViewInit, OnDestroy {
 
-  imageListener$: Subject<WebcamImage> = new Subject<WebcamImage>();
-  imageTrigger = new EventEmitter<void>();
-  imagePartner$: Observable<{id: string, image: string}>;
+  @ViewChild('mycam') localCamera: VideoElementComponent;
+  @ViewChild('partnercam') partnerCamera: VideoElementComponent;
+  private room = 'this-is-a-room-id';
 
   constructor(
-    private _socket: SocketioService
+    private _room: RoomService,
+    private _toast: ToastService
   ) { }
 
-  ngOnInit(): void {
-    interval(1000 / FPS)
-      .pipe(
-        tap(() => this.imageTrigger.next()),
-        switchMap(() => this.imageListener$),
-        map(image => image.imageAsBase64)
-      ).subscribe(image => {
-          this._socket.emit('image', {id: this._socket.id, image});
-      });
+  ngAfterViewInit(): void {
+    this.initCamera();
+    this._room.joinRoom(this.room);
+  }
 
-    this.imagePartner$ = this._socket.listen('image')
-      .pipe(
-        startWith({image: 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}),
-        map(data => ({...data, image: `data:image/jpeg;base64,${data.image}`})),
-        shareReplay(1)
-      );
+  ngOnDestroy(): void {
+    this._room.leaveRoom(this.room);
+  }
+
+  initCamera() {
+    navigator.getUserMedia(
+      { video: true, audio: true },
+      stream => {
+        this.localCamera.src = stream;
+        this.localCamera.play();
+        this.localCamera.mute();
+      },
+      () => {
+        this._toast.text('unable to access user camera');
+      }
+     );
   }
 
 }
