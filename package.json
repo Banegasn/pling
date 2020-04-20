@@ -13,8 +13,8 @@
     "postinstall": "cd backend && npm install && cd ../client && npm install"
   },
   "engines": {
-    "node": "9.2.0",
-    "npm": "6.0.0"
+    "node": "^12.16.0",
+    "npm": "^6.14.0"
   },
   "devDependencies": {
     "concurrently": "^5.1.0"
