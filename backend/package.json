@@ -1,17 +1,21 @@
 {
-  "name": "videostream",
-  "version": "1.0.0",
-  "description": "video stream app",
+  "name": "app-pling-backend",
+  "version": "0.0.1",
+  "description": "Meeting server app",
   "main": "index.js",
   "scripts": {
     "tsc": "tsc",
-    "dev": "nodemon src/server.ts"
+    "start": "node ./dist/server.js",
+    "dev": "nodemon src/server.ts",
+    "postinstall": "tsc"
   },
   "author": "Nico Banegas",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "socket.io": "^2.3.0"
+    "path": "^0.12.7",
+    "socket.io": "^2.3.0",
+    "ts-node": "^8.9.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.6",

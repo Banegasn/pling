@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "videocall": {
+    "app-pling": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/videocall",
+            "outputPath": "dist/app-pling",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -70,18 +70,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "videocall:build"
+            "browserTarget": "app-pling:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "videocall:build:production"
+              "browserTarget": "app-pling:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "videocall:build"
+            "browserTarget": "app-pling:build"
           }
         },
         "test": {
@@ -120,16 +120,16 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "videocall:serve"
+            "devServerTarget": "app-pling:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "videocall:serve:production"
+              "devServerTarget": "app-pling:serve:production"
             }
           }
         }
       }
     }
   },
-  "defaultProject": "videocall"
+  "defaultProject": "app-pling"
 }
