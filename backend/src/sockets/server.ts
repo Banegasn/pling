@@ -1,6 +1,6 @@
 import socketio from 'socket.io';
 import * as http from "http";
-import { Room } from '../room';
+import { Room } from '../shared/room';
 import { MESSAGES } from './messages.model';
 
 export class SocketServer {

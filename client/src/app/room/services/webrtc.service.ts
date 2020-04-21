@@ -2,12 +2,21 @@ import { Injectable } from '@angular/core';
 import { Observable,  merge, Subject } from 'rxjs';
 import { RoomService } from './room.service';
 import { VideoService } from './video.service';
-import { take, switchMap, tap, filter, switchMapTo } from 'rxjs/operators';
-
+import { take, switchMap, tap, filter } from 'rxjs/operators';
 
 export const RTC_PEER_MESSAGE_SDP_OFFER = 'sdp-offer';
 export const RTC_PEER_MESSAGE_SDP_ANSWER = 'sdp-answer';
 export const RTC_PEER_MESSAGE_ICE = 'ice';
+export const RTC_PEER_CONFIG =
+{iceServers:
+  [
+    {urls: 'stun:stun.l.google.com:19302'},
+    {urls: 'stun:stun1.l.google.com:19302'},
+    {urls: 'stun:stun2.l.google.com:19302'},
+    {urls: 'stun:stun3.l.google.com:19302'},
+    {urls: 'stun:stun4.l.google.com:19302'}
+  ]
+};
 
 @Injectable({
   providedIn: 'root'
@@ -127,7 +136,7 @@ export class WebrtcService {
       return this.peerConnections[id];
     }
 
-    const peerConnection = new RTCPeerConnection();
+    const peerConnection = new RTCPeerConnection(RTC_PEER_CONFIG);
     this.peerConnections[id] = peerConnection;
 
     peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {

@@ -4,8 +4,7 @@
 
 export const environment = {
   production: false,
-  SOCKET_HOSTNAME: 'http://localhost', // to do
-  SOCKET_PORT: '8080' // to do
+  webSocketURL: 'ws://' + location.hostname + ':8080'
 };
 
 /*

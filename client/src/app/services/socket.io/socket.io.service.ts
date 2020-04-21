@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class SocketioService {
   private socket: SocketIOClient.Socket;
 
   constructor() {
-    this.socket = io(location.origin.replace(/^http/, 'ws'),
+    this.socket = io(environment.webSocketURL,
       {transports: ['websocket']}
     );
     this.socket.on('disconnect', () => {
