@@ -14,7 +14,7 @@ export class SocketioService {
   private socket: SocketIOClient.Socket;
 
   constructor() {
-    this.socket = io(window.location.hostname + environment.SOCKET_PORT,
+    this.socket = io(window.location.hostname + ':' + environment.SOCKET_PORT,
       {transports: ['websocket']}
     );
     this.socket.on('disconnect', () => {
