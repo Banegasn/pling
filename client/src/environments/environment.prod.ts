@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  webSocketURL: 'ws://' + location.hostname
+  webSocketURL: location.origin.replace(/^http/, 'ws')
 };
