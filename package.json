@@ -6,7 +6,7 @@
     "dev-back": "cd backend && npm run dev",
     "dev-client": "cd client && ng serve --open",
     "dev": "concurrently \"npm run dev-back\" \"npm run dev-client\"",
-    "start": "node ./backend/dist/server.js",
+    "start": "cd backend && npm start",
     "build-back": "cd backend && npm build",
     "build-client": "cd client && npm build",
     "build": "npm run build-back && npm run build-client",
