@@ -20,6 +20,7 @@ export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
   private room: string = null;
 
   roomies$: Observable<any>;
+  myId: string;
 
   constructor(
     private _room: RoomService,
@@ -29,7 +30,8 @@ export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngOnInit() {
     this.room = this._route.snapshot.paramMap.get('id');
-    this.roomies$ = this._room.roomies$.pipe(tap(console.log));
+    this.roomies$ = this._room.roomies$;
+    this.myId = this._room.myId;
   }
 
   @HostListener('window:beforeunload')

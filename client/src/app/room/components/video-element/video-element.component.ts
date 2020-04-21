@@ -9,6 +9,7 @@ export class VideoElementComponent implements AfterViewInit {
   @ViewChild('video') private videoRef: ElementRef;
   private video: HTMLVideoElement;
   private stream: MediaStream;
+  private volume: number;
 
   constructor() { }
 
@@ -20,9 +21,18 @@ export class VideoElementComponent implements AfterViewInit {
     return this.video.srcObject as MediaStream;
   }
 
+  @Input()
+  set muted(muted: boolean) {
+    muted ? this.volume = 0 : this.volume = 1;
+    if (this.video) {
+      this.video.volume = this.volume;
+    }
+  }
+
   ngAfterViewInit(): void {
     this.video = this.videoRef.nativeElement as HTMLVideoElement;
     this.video.srcObject = this.stream;
+    this.video.volume = this.volume;
   }
 
   play() {

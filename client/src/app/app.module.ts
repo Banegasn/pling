@@ -5,7 +5,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RoomComponent } from './room/room.component';
-import { WebcamModule } from 'ngx-webcam';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { NavComponent } from './nav/nav.component';
@@ -35,7 +34,6 @@ import { UserListComponent } from './room/components/user-list/user-list.compone
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    WebcamModule,
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
     LayoutModule,
     MatToolbarModule,

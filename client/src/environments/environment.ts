@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  SOCKET_ENDPOINT: 'http://localhost:3000' // to do
+  SOCKET_HOSTNAME: 'http://localhost:3000', // to do
+  SOCKET_PORT: '3000' // to do
 };
 
 /*

@@ -36,7 +36,6 @@ export class WebrtcService {
         switchMap(users => {
           const observables = users.map(id => {
             return this.makeOffer$(id).pipe(
-              tap(console.log),
               tap(sdp => {
               this._room.messageRTC({
                 to: id,

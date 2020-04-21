@@ -42,6 +42,10 @@ export class RoomService implements OnDestroy {
     });
   }
 
+  get myId(): string {
+    return this._socket.id;
+  }
+
   ngOnDestroy(): void {
     this._onDestroy$.next();
     this._onDestroy$.complete();
@@ -70,7 +74,7 @@ export class RoomService implements OnDestroy {
   }
 
   messageRTC$(): Observable<any> {
-    return this._socket.listen('peer-message').pipe(tap(console.log));
+    return this._socket.listen('peer-message');
   }
 
   myRoomies$() {
