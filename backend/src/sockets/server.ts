@@ -26,7 +26,7 @@ export class SocketServer {
 
   private listenPeerMessage(socket: socketio.Socket): void {
     socket.on(MESSAGES.PEER, data => {
-      socket.to(data.room).broadcast.emit(MESSAGES.PEER, {
+      this.io.to(data.to).emit(MESSAGES.PEER, {
         ...data,
         by: socket.id
       });

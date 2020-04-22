@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy
 import { VideoElementComponent } from './components/video-element/video-element.component';
 import { RoomService } from './services/room.service';
 import { ActivatedRoute } from '@angular/router';
-import { WebrtcService } from './services/webrtc.service';
+import { WebrtcService } from './services/rtc.service';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -30,7 +30,7 @@ export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngOnInit() {
     this.room = this._route.snapshot.paramMap.get('id');
-    this.roomies$ = this._room.roomies$;
+    this.roomies$ = this._room.roomies$.pipe(tap(console.log));
     this.myId = this._room.myId;
   }
 
@@ -40,7 +40,7 @@ export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngAfterViewInit(): void {
-    this._webRTC.connectToRoom();
+    this._webRTC.start();
     this._room.joinRoom(this.room);
   }
 

@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, merge, Observable, Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap, map } from 'rxjs/operators';
+import { filter, switchMap, takeUntil, map } from 'rxjs/operators';
 import { SocketioService } from 'src/app/services/socket.io/socket.io.service';
 
 @Injectable({
@@ -62,7 +62,13 @@ export class RoomService implements OnDestroy {
   }
 
   addRoomie(roomie: {id: string, stream: MediaStream}) {
-    this._roomies$.next(this._roomies$.getValue().concat(roomie));
+    if ( !this._roomies$.getValue().find(elem => elem.id === roomie.id) ){
+      this._roomies$.next(this._roomies$.getValue().concat(roomie));
+    }
+  }
+
+  deleteRoomie(id: string) {
+    this._roomies$.next(this._roomies$.getValue().filter(roomie => roomie.id !== id));
   }
 
   addMe(stream: MediaStream) {
@@ -79,6 +85,14 @@ export class RoomService implements OnDestroy {
 
   myRoomies$() {
     return this.users$.pipe(map(users => users.filter(user => user !== this._socket.id)));
+  }
+
+  userJoined$() {
+    return this._socket.listen('join-room');
+  }
+
+  userLeft$() {
+    return this._socket.listen('leave-room');
   }
 
 }
