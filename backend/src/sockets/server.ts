@@ -1,7 +1,7 @@
 import socketio from 'socket.io';
 import * as http from "http";
 import { Room } from '../shared/room';
-import { MESSAGES } from './messages.model';
+import { MESSAGES } from './messages.enum';
 
 export class SocketServer {
 
@@ -26,23 +26,7 @@ export class SocketServer {
 
   private listenPeerMessage(socket: socketio.Socket): void {
     socket.on(MESSAGES.PEER, data => {
-      this.io.to(data.to).emit(MESSAGES.PEER, {
-        ...data,
-        by: socket.id
-      });
-    });
-  }
-
-  private listenDisconnect(socket: socketio.Socket): void {
-    socket.on(MESSAGES.DISCONNECT, () => {
-      console.log('user disconnected');
-      this.rooms
-        .filter(room => room.users.find(user => user === socket.id))
-        .map(room => {
-          room.deleteUser(socket.id);
-          socket.in(room.id).emit(MESSAGES.LEAVE_ROOM, { users: room.users, id: socket.id });
-        });
-      socket.broadcast.emit('disconnected', 'user disconnected');
+      this.io.to(data.to).emit(MESSAGES.PEER, {...data, by: socket.id});
     });
   }
 
@@ -53,12 +37,25 @@ export class SocketServer {
       socket.in(data.room).emit(MESSAGES.LEAVE_ROOM, { ...data, users, id: socket.id });
     });
   }
-
+  
   private listenJoinRoom(socket: socketio.Socket): void {
     socket.on(MESSAGES.JOIN_ROOM, (data) => {
       const users = this.getRoom(data.room).addUser(socket.id).users;
       socket.join(data.room);
       this.io.in(data.room).emit(MESSAGES.JOIN_ROOM, { ...data, users, id: socket.id });
+    });
+  }
+  
+  private listenDisconnect(socket: socketio.Socket): void {
+    socket.on(MESSAGES.DISCONNECT, () => {
+      console.log('user disconnected');
+      this.rooms
+        .filter(room => room.users.find(user => user === socket.id))
+        .map(room => {
+          room.deleteUser(socket.id);
+          socket.in(room.id).emit(MESSAGES.LEAVE_ROOM, { users: room.users, id: socket.id });
+        });
+      socket.broadcast.emit('disconnected', 'user disconnected');
     });
   }
 

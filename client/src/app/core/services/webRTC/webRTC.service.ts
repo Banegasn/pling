@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable,  merge, Subject, BehaviorSubject } from 'rxjs';
-import { RoomService } from './room.service';
-import { VideoService } from './video.service';
-import { take, switchMap, tap, filter, mergeMap, concatMap } from 'rxjs/operators';
+import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
+import { switchMap, tap, take } from 'rxjs/operators';
+import { SocketioService } from 'src/app/core/services/socket.io/socket.io.service';
+import { RoomEvent } from '../../../room/models/roomUserJoin';
+import { RoomService } from '../../../room/services/room.service';
+import { VideoService } from '../../../room/services/video.service';
+import { setMediaBitrate } from './webRTC.utils';
 
 const RTC_PEER_MESSAGE_SDP_OFFER = 'sdp-offer';
 const RTC_PEER_MESSAGE_SDP_ANSWER = 'sdp-answer';
@@ -17,49 +20,58 @@ const RTC_PEER_CONFIG = {
 @Injectable({
   providedIn: 'root'
 })
-export class WebrtcService {
+export class WebRTCService {
 
-  myStream$: BehaviorSubject<MediaStream> = new BehaviorSubject<MediaStream>(null);
-
+  private _myStream: BehaviorSubject<MediaStream> = new BehaviorSubject<MediaStream>(null);
   private _peerConnections: RTCPeerConnection[] = [];
-  private _initialized$ = new Subject<void>();
+  private _userJoined$: Observable<RoomEvent>;
+  private _userLeft$: Observable<RoomEvent>;
+  private _roomReady$: Observable<string[]>;
+  private _listenRTCMessages$: Observable<any>;
 
   constructor(
     private _room: RoomService,
+    private _socket: SocketioService,
     private _videoSrv: VideoService
   ) {
-
-    this._initialized$
-      .pipe(
-        switchMap(() => this._room.messageRTC$())
-      ).subscribe(data => {
-        this.handleRTCPeerMessage(data);
-      });
-
-    this._videoSrv.AudioAndVideoStream$
-      .pipe(take(1))
-      .subscribe((stream) => {
-        this.myStream$.next(stream);
-        this._initialized$.next();
-      });
+    this._roomReady$ = this._room.users$.pipe(
+      take(1),
+      tap(data => {
+        data.filter(id => id !== this._socket.id)
+          .forEach(id => this.getPeerConnection(id));
+        console.log('readyyyy!', data);
+      })
+    );
+    this._userJoined$ = this._room.userJoined$().pipe(
+      tap(data => this.getPeerConnection(data.id))
+    );
+    this._userLeft$ = this._room.userLeft$().pipe(
+      tap(data => this._room.deleteRoomie(data.id))
+    );
+    this._listenRTCMessages$ = this.messageRTC$().pipe(
+      tap(data => this.handleRTCPeerMessage(data))
+    );
   }
 
   start() {
-    this._initialized$
+    this._videoSrv.audioAndVideoStream$
     .pipe(
-      concatMap(() => this._room.userJoined$().pipe(
-        tap(data => {
-          data.users.forEach((id: string) => {
-            this.getPeerConnection(id);
-          });
-        })
-      ))
+      tap(stream => this._myStream.next(stream)),
+      switchMap(() => forkJoin([
+        this._userJoined$,
+        this._userLeft$,
+        this._listenRTCMessages$,
+        this._roomReady$
+      ])),
     ).subscribe();
+  }
 
-    this._room.userLeft$().pipe(
-      tap(console.log),
-      tap(data => this._room.deleteRoomie(data.id))
-    ).subscribe();
+  private messageRTC(data: any): void {
+    this._socket.emit('peer-message', data);
+  }
+
+  private messageRTC$(): Observable<any> {
+    return this._socket.listen('peer-message');
   }
 
   private handleRTCPeerMessage(message: any) {
@@ -70,10 +82,9 @@ export class WebrtcService {
       case RTC_PEER_MESSAGE_SDP_OFFER:
         peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp)).then(() => {
           console.log('Setting remote description by offer');
-          peerConnection.createAnswer().then((sdp: RTCSessionDescriptionInit) => {
-            console.log('on message offer send answer', sdp.type);
+          peerConnection.createAnswer().then(sdp => {
             peerConnection.setLocalDescription(sdp).then(() => {
-              this._room.messageRTC({
+              this.messageRTC({
                 to: message.by, sdp, type: RTC_PEER_MESSAGE_SDP_ANSWER
               });
             });
@@ -102,15 +113,15 @@ export class WebrtcService {
       return this._peerConnections[id];
     }
 
-    console.log('creating RTCPeerConnection', {id, local: this._room.myId});
+    console.log('creating RTCPeerConnection', {id, local: this._socket.id});
 
     // creates RTCPeerConnection object
     const peerConnection = new RTCPeerConnection(RTC_PEER_CONFIG);
     this._peerConnections[id] = peerConnection;
 
     // adds my tracks
-    this.myStream$.getValue().getTracks().forEach(track => {
-      peerConnection.addTrack(track, this.myStream$.getValue());
+    this._myStream.getValue().getTracks().forEach(track => {
+      peerConnection.addTrack(track, this._myStream.getValue());
     });
 
     // received track
@@ -121,17 +132,17 @@ export class WebrtcService {
     // sends ice candidates
     peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       if (event.candidate) {
-        console.log('on ice candidate', event);
-        this._room.messageRTC({to: id, ice: event.candidate, type: RTC_PEER_MESSAGE_ICE});
+        this.messageRTC({to: id, ice: event.candidate, type: RTC_PEER_MESSAGE_ICE});
       }
     };
 
     peerConnection.onnegotiationneeded = () => {
       console.log('Need negotiation:', id);
-      peerConnection.createOffer().then(sdp => {
-        console.log(sdp.type);
-        peerConnection.setLocalDescription(sdp).then(() => {
-          this._room.messageRTC({to: id, sdp, type: RTC_PEER_MESSAGE_SDP_OFFER});
+      peerConnection.createOffer().then(offer => {
+        peerConnection.setLocalDescription(offer).then(() => {
+          offer.sdp = setMediaBitrate(offer.sdp, 'video', 200);
+          offer.sdp = setMediaBitrate(offer.sdp, 'audio', 30);
+          this.messageRTC({to: id, sdp: offer, type: RTC_PEER_MESSAGE_SDP_OFFER});
         });
       });
     };
@@ -139,8 +150,6 @@ export class WebrtcService {
     peerConnection.onsignalingstatechange = () => {
       console.log('ICE signaling state changed to:', peerConnection.signalingState, 'for client', id);
     };
-
-    console.log('finish creating RTCPeerConnection', {id, local: this._room.myId}, peerConnection);
 
     return peerConnection;
   }

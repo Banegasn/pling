@@ -1,6 +1,15 @@
-<app-video-element #mycam
-  *ngFor="let roomie of roomies$ | async"
-  [src]="roomie?.stream"
-  [muted]="roomie.id === myId"
-  id="roomie.id">
+<app-video-element *ngFor="let roomie of roomies$ | async"
+  class="roomie-cam" [src]="roomie?.stream" [id]="roomie.id">
 </app-video-element>
+
+<app-video-element class="preview" #myCam [src]="stream" muted='true'>
+</app-video-element>
+
+<div class="action-bar">
+  <button mat-fab (click)="toggleAudio()">
+    <mat-icon>{{micEnabled()? 'mic' : 'mic_off'}}</mat-icon>
+  </button>
+  <button mat-fab (click)="toggleVideo()">
+    <mat-icon>{{camEnabled()? 'videocam' : 'videocam_off'}}</mat-icon>
+  </button>
+</div>

@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
-import { ToastService } from '../../../services/toast/toast.service';
-import { SocketioService } from '../../../services/socket.io/socket.io.service';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil, tap, filter } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
+import { ToastService } from '@core/services/toast/toast.service';
+import { RoomService } from '../../services/room.service';
 
 @Component({
   selector: 'app-toast-messages',
@@ -15,21 +15,19 @@ export class ToastMessagesComponent implements OnInit, OnDestroy {
 
   constructor(
     private _toast: ToastService,
-    private _socket: SocketioService
+    private _room: RoomService
   ) { }
 
   ngOnInit(): void {
-    this._socket.listen('join-room').pipe(
-      filter(data => data.id !== this._socket.id),
+    this._room.userJoined$().pipe(
       takeUntil(this._onDestroy),
-    ).subscribe(data => {
+    ).subscribe(() => {
       this._toast.text('An user has joined the room');
     });
 
-    this._socket.listen('leave-room').pipe(
-      filter(data => data.id !== this._socket.id),
+    this._room.userLeft$().pipe(
       takeUntil(this._onDestroy),
-    ).subscribe((data) => {
+    ).subscribe(() => {
       this._toast.text('An user has left the room');
     });
   }

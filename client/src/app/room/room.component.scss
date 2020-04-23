@@ -1,0 +1,30 @@
+.preview {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 250px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px;
+  height: 200px;
+}
+.roomie-cam {
+  height: 300px;
+  width: 400px;
+  align-items: center;
+  display: inline-block;
+  text-align: center;
+  background: darkgrey;
+  border-radius: 20px;
+  margin: 20px;
+  overflow: hidden;
+}
+.action-bar {
+  width: 100%;
+  position: absolute;
+  bottom: 20px;
+  text-align: center;
+  button {
+    margin: 0 5px;
+  }
+}

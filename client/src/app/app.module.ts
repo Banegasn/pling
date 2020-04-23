@@ -1,24 +1,23 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { RoomComponent } from './room/room.component';
-import { ServiceWorkerModule } from '@angular/service-worker';
-import { environment } from '../environments/environment';
-import { NavComponent } from './nav/nav.component';
 import { LayoutModule } from '@angular/cdk/layout';
-import { MatToolbarModule } from '@angular/material/toolbar';
+import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import { ToastMessagesComponent } from './room/components/toast-messages/toast-messages.component';
-import { TextToastComponent } from './services/toast/templates/text-toast.component';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { VideoElementComponent } from './room/components/video-element/video-element.component';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { TextToastComponent } from './core/services/toast/templates/text-toast.component';
+import { NavComponent } from './nav/nav.component';
+import { ToastMessagesComponent } from './room/components/toast-messages/toast-messages.component';
 import { UserListComponent } from './room/components/user-list/user-list.component';
+import { VideoElementComponent } from './room/components/video-element/video-element.component';
+import { RoomComponent } from './room/room.component';
 
 @NgModule({
   declarations: [

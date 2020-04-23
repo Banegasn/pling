@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, ViewChild, AfterViewInit, OnDestroy, HostListener, OnInit } from '@angular/core';
-import { VideoElementComponent } from './components/video-element/video-element.component';
-import { RoomService } from './services/room.service';
+import { ChangeDetectionStrategy, Component, HostListener, OnDestroy,
+  OnInit, ViewChild, ViewChildren } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { WebrtcService } from './services/rtc.service';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { WebRTCService } from '@core/services/webRTC/webRTC.service';
+import { VideoElementComponent } from './components/video-element/video-element.component';
+import { RoomService } from './services/room.service';
+import { VideoService } from './services/video.service';
 
 @Component({
   selector: 'app-call',
@@ -12,40 +14,56 @@ import { tap } from 'rxjs/operators';
   styleUrls: ['./room.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RoomComponent implements AfterViewInit, OnDestroy, OnInit {
+export class RoomComponent implements OnDestroy, OnInit {
 
-  @ViewChild('mycam') localCamera: VideoElementComponent;
-  @ViewChild('roomie') roomieCamera: VideoElementComponent;
+  @ViewChild('myCam') private localCam: VideoElementComponent;
+  @ViewChildren('.roomie-cam') private roomiesCams: VideoElementComponent[];
 
   private room: string = null;
 
   roomies$: Observable<any>;
-  myId: string;
+  stream: MediaStream;
 
   constructor(
     private _room: RoomService,
-    private _webRTC: WebrtcService,
-    private _route: ActivatedRoute
-  ) { }
+    private _webRTC: WebRTCService,
+    private _route: ActivatedRoute,
+    private _videoStream: VideoService
+  ) {
+    this._webRTC.start();
+    this._videoStream.audioAndVideoStream$.subscribe(
+      stream => this.stream = stream
+    );
+  }
 
   ngOnInit() {
     this.room = this._route.snapshot.paramMap.get('id');
-    this.roomies$ = this._room.roomies$.pipe(tap(console.log));
-    this.myId = this._room.myId;
-  }
-
-  @HostListener('window:beforeunload')
-  beforeunloadHandler(): void {
-    this._room.leaveRoom(this.room);
-  }
-
-  ngAfterViewInit(): void {
-    this._webRTC.start();
     this._room.joinRoom(this.room);
+    this.roomies$ = this._room.roomies$.pipe(tap(console.log));
+  }
+
+  @HostListener('window:beforeunload') beforeunloadHandler(): void {
+    this._room.leaveRoom(this.room);
   }
 
   ngOnDestroy(): void {
     this._room.leaveRoom(this.room);
+  }
+
+  toggleAudio() {
+    this.stream.getAudioTracks()[0].enabled = !this.stream.getAudioTracks()[0].enabled;
+  }
+
+  micEnabled() {
+    return this.stream.getAudioTracks()[0].enabled;
+  }
+
+  toggleVideo() {
+    this.stream.getVideoTracks()[0].enabled = !this.stream.getVideoTracks()[0].enabled;
+  }
+
+  camEnabled() {
+    return this.stream.getVideoTracks()[0].enabled;
   }
 
 }

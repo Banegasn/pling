@@ -1,19 +1,23 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VideoService {
 
-  constructor() { }
+  private _stream = new BehaviorSubject<MediaStream>(null);
+  readonly stream$ = this._stream.asObservable();
 
-  get AudioAndVideoStream$(): Observable<MediaStream> {
-    return new Observable((subscriber) => {
-      navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(
-        stream => subscriber.next(stream)
-      );
-    });
+  constructor() {
+    navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(
+      stream => this._stream.next(stream)
+    );
+  }
+
+  get audioAndVideoStream$(): Observable<MediaStream> {
+    return this.stream$.pipe(filter(stream => stream !== null));
   }
 
 }
