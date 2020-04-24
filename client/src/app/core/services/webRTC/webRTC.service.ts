@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, forkJoin, Observable, of } from 'rxjs';
-import { switchMap, tap, take, filter, map, mergeMap } from 'rxjs/operators';
+import { forkJoin, Observable } from 'rxjs';
+import { mergeMap, tap } from 'rxjs/operators';
 import { SocketioService } from 'src/app/core/services/socket.io/socket.io.service';
 import { RoomEvent } from '../../../room/models/roomUserJoin';
 import { RoomService } from '../../../room/services/room.service';
@@ -22,7 +22,7 @@ const RTC_PEER_CONFIG = {
 })
 export class WebRTCService {
 
-  private _myStream: BehaviorSubject<MediaStream> = new BehaviorSubject<MediaStream>(null);
+  private myStream: MediaStream = null;
   private _peerConnections: Map<string, RTCPeerConnection> = new Map();
   private _userJoined$: Observable<RoomEvent>;
   private _userLeft$: Observable<RoomEvent>;
@@ -53,7 +53,7 @@ export class WebRTCService {
   start() {
     this._videoSrv.stream$
     .pipe(
-      tap(stream => this._myStream.next(stream)),
+      tap(stream => this.myStream = stream),
       mergeMap(() => forkJoin([
         this._userJoined$,
         this._userLeft$,
@@ -122,8 +122,8 @@ export class WebRTCService {
     };
 
     // adds my tracks
-    this._myStream.getValue().getTracks().forEach(track => {
-      peerConnection.addTrack(track, this._myStream.getValue());
+    this.myStream.getTracks().forEach(track => {
+      peerConnection.addTrack(track, this.myStream);
     });
 
     peerConnection.onnegotiationneeded = () => {

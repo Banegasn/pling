@@ -1,12 +1,10 @@
-import { ChangeDetectionStrategy, Component, HostListener, OnDestroy,
-  OnInit, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, of, Subject, BehaviorSubject } from 'rxjs';
-import { tap, share, shareReplay } from 'rxjs/operators';
 import { WebRTCService } from '@core/services/webRTC/webRTC.service';
-import { VideoElementComponent } from './components/video-element/video-element.component';
-import { RoomService } from './services/room.service';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { shareReplay, tap } from 'rxjs/operators';
 import { StreamService } from '../core/services/stream/stream.service';
+import { RoomService } from './services/room.service';
 
 @Component({
   selector: 'app-call',
@@ -15,9 +13,6 @@ import { StreamService } from '../core/services/stream/stream.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RoomComponent implements OnDestroy, OnInit {
-
-  @ViewChild('myCam') private localCam: VideoElementComponent;
-  @ViewChildren('.roomie-cam') private roomiesCams: VideoElementComponent[];
 
   private room: string = null;
   private screenSharing: BehaviorSubject<MediaStream> = new BehaviorSubject(null);

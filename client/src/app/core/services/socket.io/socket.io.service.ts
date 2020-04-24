@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { finalize, share } from 'rxjs/operators';
 import * as io from 'socket.io-client';
-import { Observable, BehaviorSubject, pipe } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { share, finalize } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'

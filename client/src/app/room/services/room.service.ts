@@ -1,10 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, merge, Observable, Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap, shareReplay, share, map } from 'rxjs/operators';
 import { SocketioService } from '@core/services/socket.io/socket.io.service';
+import { BehaviorSubject, merge, Observable, Subject } from 'rxjs';
+import { filter, map, share, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Roomie } from '../models/roomie';
 import { RoomMessage } from '../models/roomMessages';
 import { RoomEvent } from '../models/roomUserJoin';
-import { Roomie } from '../models/roomie';
 
 @Injectable({
   providedIn: 'root'
