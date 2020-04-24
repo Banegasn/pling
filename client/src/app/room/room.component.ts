@@ -6,7 +6,7 @@ import { tap } from 'rxjs/operators';
 import { WebRTCService } from '@core/services/webRTC/webRTC.service';
 import { VideoElementComponent } from './components/video-element/video-element.component';
 import { RoomService } from './services/room.service';
-import { VideoService } from './services/video.service';
+import { StreamService } from '../core/services/stream/stream.service';
 
 @Component({
   selector: 'app-call',
@@ -28,12 +28,22 @@ export class RoomComponent implements OnDestroy, OnInit {
     private _room: RoomService,
     private _webRTC: WebRTCService,
     private _route: ActivatedRoute,
-    private _videoStream: VideoService
+    private _videoStream: StreamService
   ) {
-    this._webRTC.start();
-    this._videoStream.audioAndVideoStream$.subscribe(
+    this._videoStream.getStream$({
+      audio: true,
+      video: {
+        height: {
+          max: 480
+        },
+        frameRate: {
+          max: 12
+        }
+      }
+    }).subscribe(
       stream => this.stream = stream
-    );
+      );
+    this._webRTC.start();
   }
 
   ngOnInit() {

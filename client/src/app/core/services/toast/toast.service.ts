@@ -14,7 +14,8 @@ export class ToastService {
   text(message: string) {
     this._snackBar.openFromComponent(TextToastComponent, {
       duration: this.durationInSeconds * 1000,
-      data: message
+      data: message,
+      horizontalPosition: 'right'
     });
   }
 }

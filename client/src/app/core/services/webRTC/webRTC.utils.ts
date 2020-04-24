@@ -9,10 +9,10 @@ export function setMediaBitrate(sdp: string, media: string, bitrate: number) {
     }
   }
   if (line === -1) {
-    console.log('Could not find the m line for', media, lines);
+    console.log('Could not find the m line for', media);
     return sdp;
   }
-  console.log('Found the m line for', media, 'at line', line, lines);
+  console.log('Found the m line for', media, 'at line', line);
 
   // Pass the m line
   line++;

@@ -5,7 +5,7 @@
 <app-video-element class="preview" #myCam [src]="stream" muted='true'>
 </app-video-element>
 
-<div class="action-bar">
+<div class="action-bar" *ngIf="stream">
   <button mat-fab (click)="toggleAudio()">
     <mat-icon>{{micEnabled()? 'mic' : 'mic_off'}}</mat-icon>
   </button>
