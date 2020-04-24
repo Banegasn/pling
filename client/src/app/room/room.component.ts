@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnDestroy,
   OnInit, ViewChild, ViewChildren } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, of, Subject, BehaviorSubject } from 'rxjs';
+import { tap, share, shareReplay } from 'rxjs/operators';
 import { WebRTCService } from '@core/services/webRTC/webRTC.service';
 import { VideoElementComponent } from './components/video-element/video-element.component';
 import { RoomService } from './services/room.service';
@@ -20,8 +20,10 @@ export class RoomComponent implements OnDestroy, OnInit {
   @ViewChildren('.roomie-cam') private roomiesCams: VideoElementComponent[];
 
   private room: string = null;
+  private screenSharing: BehaviorSubject<MediaStream> = new BehaviorSubject(null);
 
   roomies$: Observable<any>;
+  screenStream = this.screenSharing.asObservable().pipe(shareReplay());
   stream: MediaStream;
 
   constructor(
@@ -29,7 +31,10 @@ export class RoomComponent implements OnDestroy, OnInit {
     private _webRTC: WebRTCService,
     private _route: ActivatedRoute,
     private _videoStream: StreamService
-  ) {
+  ) { }
+
+  ngOnInit() {
+    this.room = this._route.snapshot.paramMap.get('id');
     this._videoStream.getStream$({
       audio: true,
       video: {
@@ -40,15 +45,11 @@ export class RoomComponent implements OnDestroy, OnInit {
           max: 12
         }
       }
-    }).subscribe(
-      stream => this.stream = stream
-      );
-    this._webRTC.start();
-  }
-
-  ngOnInit() {
-    this.room = this._route.snapshot.paramMap.get('id');
-    this._room.joinRoom(this.room);
+    }).subscribe((stream) => {
+      this.stream = stream;
+      this._webRTC.start();
+      this._room.joinRoom(this.room);
+    });
     this.roomies$ = this._room.roomies$.pipe(tap(console.log));
   }
 
@@ -76,4 +77,22 @@ export class RoomComponent implements OnDestroy, OnInit {
     return this.stream.getVideoTracks()[0].enabled;
   }
 
+  toggleShareScreen() {
+    if (this.screenSharing.getValue() !== null) {
+      this.screenSharing.getValue().getTracks()
+        .forEach(track => track.stop());
+      return this.screenSharing.next(null);
+    }
+    const displayMediaOptions = {
+      video: true,
+      audio: false
+    };
+    const mediaDevices = navigator.mediaDevices as any;
+    mediaDevices.getDisplayMedia(displayMediaOptions).then((stream: MediaStream) => {
+      this.screenSharing.next(stream);
+      stream.getVideoTracks()[0].onended = () => {
+        this.screenSharing.next(null);
+      };
+    });
+  }
 }

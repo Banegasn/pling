@@ -12,7 +12,6 @@ export function setMediaBitrate(sdp: string, media: string, bitrate: number) {
     console.log('Could not find the m line for', media);
     return sdp;
   }
-  console.log('Found the m line for', media, 'at line', line);
 
   // Pass the m line
   line++;
@@ -24,13 +23,11 @@ export function setMediaBitrate(sdp: string, media: string, bitrate: number) {
 
   // If we're on a b line, replace it
   if (lines[line].indexOf('b') === 0) {
-    console.log('Replaced b line at line', line);
     lines[line] = 'b=AS:' + bitrate;
     return lines.join('\n');
   }
 
   // Add a new b line
-  console.log('Adding new b line before line', line);
   let newLines = lines.slice(0, line);
   newLines.push('b=AS:' + bitrate);
   newLines = newLines.concat(lines.slice(line, lines.length));

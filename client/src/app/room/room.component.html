@@ -1,8 +1,10 @@
-<app-video-element *ngFor="let roomie of roomies$ | async"
-  class="roomie-cam" [src]="roomie?.stream" [id]="roomie.id">
+<app-video-element *ngFor="let roomie of roomies$ | async" class="roomie-cam" [src]="roomie?.stream" [id]="roomie.id">
 </app-video-element>
 
 <app-video-element class="preview" #myCam [src]="stream" muted='true'>
+</app-video-element>
+
+<app-video-element *ngIf="(screenStream | async) as screen" class="roomie-cam" [src]="screen" muted='true'>
 </app-video-element>
 
 <div class="action-bar" *ngIf="stream">
@@ -11,5 +13,8 @@
   </button>
   <button mat-fab (click)="toggleVideo()">
     <mat-icon>{{camEnabled()? 'videocam' : 'videocam_off'}}</mat-icon>
+  </button>
+  <button mat-fab (click)="toggleShareScreen()">
+    <mat-icon>{{ (screenStream | async) ? 'stop_screen_share' : 'screen_share'}}</mat-icon>
   </button>
 </div>

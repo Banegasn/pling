@@ -70,11 +70,13 @@ export class RoomService implements OnDestroy {
 
   deleteRoomie(id: string): void {
     const roomieToDelete = this._roomies.getValue().find(roomie => roomie.id === id);
-    roomieToDelete.stream.getTracks().forEach(track => {
-      track.stop();
-      roomieToDelete.stream.removeTrack(track);
-    });
-    this._roomies.next(this._roomies.getValue().filter(roomie => roomie.id !== id));
+    if (roomieToDelete.stream && roomieToDelete.stream.getTracks()) {
+      roomieToDelete.stream.getTracks().forEach(track => {
+        track.stop();
+        roomieToDelete.stream.removeTrack(track);
+      });
+      this._roomies.next(this._roomies.getValue().filter(roomie => roomie.id !== id));
+    }
   }
 
   getRoomie(id: string): Observable<Roomie>{
@@ -92,11 +94,11 @@ export class RoomService implements OnDestroy {
   }
 
   private get joinRoomEvent$(): Observable<RoomEvent> {
-    return this._socket.listen(RoomMessage.JoinRoom).pipe(shareReplay());
+    return this._socket.listen$(RoomMessage.JoinRoom).pipe(share());
   }
 
   private get leaveRoomEvent$(): Observable<RoomEvent> {
-    return this._socket.listen(RoomMessage.LeaveRoom).pipe(share());
+    return this._socket.listen$(RoomMessage.LeaveRoom).pipe(share());
   }
 
 }
