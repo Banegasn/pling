@@ -1,12 +1,10 @@
-import { ChangeDetectionStrategy, Component, HostListener, OnDestroy,
-  OnInit, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import { WebRTCService } from '@core/services/webRTC/webRTC.service';
-import { VideoElementComponent } from './components/video-element/video-element.component';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { shareReplay, tap } from 'rxjs/operators';
+import { StreamService } from '../core/services/stream/stream.service';
 import { RoomService } from './services/room.service';
-import { VideoService } from './services/video.service';
 
 @Component({
   selector: 'app-call',
@@ -16,29 +14,37 @@ import { VideoService } from './services/video.service';
 })
 export class RoomComponent implements OnDestroy, OnInit {
 
-  @ViewChild('myCam') private localCam: VideoElementComponent;
-  @ViewChildren('.roomie-cam') private roomiesCams: VideoElementComponent[];
-
   private room: string = null;
+  private screenSharing: BehaviorSubject<MediaStream> = new BehaviorSubject(null);
 
   roomies$: Observable<any>;
+  screenStream = this.screenSharing.asObservable().pipe(shareReplay());
   stream: MediaStream;
 
   constructor(
     private _room: RoomService,
     private _webRTC: WebRTCService,
     private _route: ActivatedRoute,
-    private _videoStream: VideoService
-  ) {
-    this._webRTC.start();
-    this._videoStream.audioAndVideoStream$.subscribe(
-      stream => this.stream = stream
-    );
-  }
+    private _videoStream: StreamService
+  ) { }
 
   ngOnInit() {
     this.room = this._route.snapshot.paramMap.get('id');
-    this._room.joinRoom(this.room);
+    this._videoStream.getStream$({
+      audio: true,
+      video: {
+        height: {
+          max: 480
+        },
+        frameRate: {
+          max: 12
+        }
+      }
+    }).subscribe((stream) => {
+      this.stream = stream;
+      this._webRTC.start();
+      this._room.joinRoom(this.room);
+    });
     this.roomies$ = this._room.roomies$.pipe(tap(console.log));
   }
 
@@ -66,4 +72,22 @@ export class RoomComponent implements OnDestroy, OnInit {
     return this.stream.getVideoTracks()[0].enabled;
   }
 
+  toggleShareScreen() {
+    if (this.screenSharing.getValue() !== null) {
+      this.screenSharing.getValue().getTracks()
+        .forEach(track => track.stop());
+      return this.screenSharing.next(null);
+    }
+    const displayMediaOptions = {
+      video: true,
+      audio: false
+    };
+    const mediaDevices = navigator.mediaDevices as any;
+    mediaDevices.getDisplayMedia(displayMediaOptions).then((stream: MediaStream) => {
+      this.screenSharing.next(stream);
+      stream.getVideoTracks()[0].onended = () => {
+        this.screenSharing.next(null);
+      };
+    });
+  }
 }

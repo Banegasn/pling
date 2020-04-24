@@ -1,7 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, merge, Observable, Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap, shareReplay, share } from 'rxjs/operators';
 import { SocketioService } from '@core/services/socket.io/socket.io.service';
+import { BehaviorSubject, merge, Observable, Subject } from 'rxjs';
+import { filter, map, share, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Roomie } from '../models/roomie';
 import { RoomMessage } from '../models/roomMessages';
 import { RoomEvent } from '../models/roomUserJoin';
 
@@ -16,7 +17,7 @@ export class RoomService implements OnDestroy {
   private _users: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
   readonly users$: Observable<any[]> = this._users.asObservable();
 
-  private _roomies: BehaviorSubject<{id: string, stream: MediaStream}[]>
+  private _roomies: BehaviorSubject<Roomie[]>
     = new BehaviorSubject<{id: string, stream: MediaStream}[]>([]);
   readonly roomies$ = this._roomies.asObservable();
 
@@ -61,14 +62,25 @@ export class RoomService implements OnDestroy {
     this._socket.emit(RoomMessage.LeaveRoom, {room});
   }
 
-  addRoomie(roomie: {id: string, stream: MediaStream}) {
+  addRoomie(roomie: Roomie) {
     if ( !this._roomies.getValue().find(elem => elem.id === roomie.id) ){
       this._roomies.next(this._roomies.getValue().concat(roomie));
     }
   }
 
-  deleteRoomie(id: string) {
-    this._roomies.next(this._roomies.getValue().filter(roomie => roomie.id !== id));
+  deleteRoomie(id: string): void {
+    const roomieToDelete = this._roomies.getValue().find(roomie => roomie.id === id);
+    if (roomieToDelete.stream && roomieToDelete.stream.getTracks()) {
+      roomieToDelete.stream.getTracks().forEach(track => {
+        track.stop();
+        roomieToDelete.stream.removeTrack(track);
+      });
+      this._roomies.next(this._roomies.getValue().filter(roomie => roomie.id !== id));
+    }
+  }
+
+  getRoomie(id: string): Observable<Roomie>{
+    return this.roomies$.pipe(map(roomies => roomies.find(roomie => roomie.id === id)));
   }
 
   userJoined$(): Observable<RoomEvent> {
@@ -82,11 +94,11 @@ export class RoomService implements OnDestroy {
   }
 
   private get joinRoomEvent$(): Observable<RoomEvent> {
-    return this._socket.listen(RoomMessage.JoinRoom).pipe(share());
+    return this._socket.listen$(RoomMessage.JoinRoom).pipe(share());
   }
 
   private get leaveRoomEvent$(): Observable<RoomEvent> {
-    return this._socket.listen(RoomMessage.LeaveRoom).pipe(share());
+    return this._socket.listen$(RoomMessage.LeaveRoom).pipe(share());
   }
 
 }
