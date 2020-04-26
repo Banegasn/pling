@@ -40,7 +40,7 @@ export class SocketServer {
   
   private listenJoinRoom(socket: socketio.Socket): void {
     socket.on(MESSAGES.JOIN_ROOM, (data) => {
-      const users = this.getRoom(data.room).addUser(socket.id).users;
+      const users = this.getRoom(data.room).addUser(socket.id, data.user).users;
       socket.join(data.room);
       this.io.in(data.room).emit(MESSAGES.JOIN_ROOM, { ...data, users, id: socket.id });
     });
@@ -50,7 +50,7 @@ export class SocketServer {
     socket.on(MESSAGES.DISCONNECT, () => {
       console.log('user disconnected');
       this.rooms
-        .filter(room => room.users.find(user => user === socket.id))
+        .filter(room => room.users.find(user => user.id === socket.id))
         .map(room => {
           room.deleteUser(socket.id);
           socket.in(room.id).emit(MESSAGES.LEAVE_ROOM, { users: room.users, id: socket.id });

@@ -10,8 +10,40 @@
   background: inherit;
 }
 
+.mat-nav-list hr {
+  border-color: #0000001f;
+}
+
+.mat-list-item.active {
+  color: white;
+  background-color: #3f51b5;
+}
+
 .mat-toolbar.mat-primary {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+.menu-toggle-floating-btn {
+  position: fixed;
+  z-index: 3;
+  left: 20px;
+  top: 20px;
+  transition: left .3s, transform .3s;
+  .mat-icon {
+    transition: transform .5s;
+  }
+  &:hover {
+    transform: scale(1.05);
+    .mat-icon {
+      transform: scale(1.4);
+    }
+  }
+  &.open {
+    left: 172px;
+    .mat-icon {
+      transform: rotate(180deg);
+    }
+  }
 }

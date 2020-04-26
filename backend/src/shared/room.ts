@@ -1,26 +1,30 @@
+import { User } from "./user";
+
 export class Room {
 
-  id: string;
-  users: string[];
+  readonly id: string;
+  private _users: Map<string, User>;
 
   constructor(id: string) {
     this.id = id;
-    this.users = [];
+    this._users = new Map();
   }
 
-  addUser(id: string): Room {
-    if (!this.users.includes(id)) {
-      this.users.push(id);
-    }
+  addUser(id: string, user: User ): Room {
+    this._users.set(id, user);
     return this;
   }
 
   deleteUser(id: string): Room {
-    this.users = this.users.filter(user => user !== id);
+    this._users.delete(id);
     return this;
   }
 
-  roomies(id: string): string[] {
-    return this.users.filter(user => user !== id);
+  roomies(id: string): User[] {
+    return this.users.filter(user => user.id !== id);
+  }
+
+  get users() {
+    return Array.from(this._users.values());
   }
 }

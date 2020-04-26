@@ -1,4 +1,8 @@
-<span *ngFor="let user of users$ | async">
-  <mat-icon>face</mat-icon>
-  {{user}}
-</span>
+<div class="user-list">
+  <h5 class="user-list-title">Users in this room</h5>
+  <div class="user-list-item" *ngFor="let user of users$ | async">
+    {{user.name}}
+    <mat-icon>mic</mat-icon>
+    <mat-icon>videocam</mat-icon>
+  </div>
+</div>

@@ -56,6 +56,15 @@ export class WebRTCService {
     ).subscribe();
   }
 
+  addTrack(stream: MediaStream) {
+    this._peerConnections.forEach((peer, id) => {
+      stream.getTracks().forEach(track => {
+        peer.addTrack(track, stream);
+      });
+      this.sendOffer(peer, id);
+    });
+  }
+
   clear() {
     this._peerConnections.forEach((peer, id) => {
       this._room.deleteRoomie(id);
@@ -116,6 +125,7 @@ export class WebRTCService {
 
     // received track
     peerConnection.ontrack = (event: RTCTrackEvent) => {
+      console.log(event.streams);
       this._room.addRoomie({id, stream: event.streams[0]});
     };
 

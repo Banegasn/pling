@@ -1,31 +1,27 @@
+<button *ngIf="drawer" mat-fab type="button" aria-label="Toggle sidenav" (click)="drawer.toggle()"
+  class="menu-toggle-floating-btn" [ngClass]="{'open': drawer.opened}">
+  <mat-icon aria-label="Side nav toggle icon">chevron_right</mat-icon>
+</button>
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #drawer class="sidenav" fixedInViewport
-      [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-      [mode]="(isHandset$ | async) ? 'over' : 'side'"
-      [opened]="(isHandset$ | async) === false">
-    <mat-toolbar>Rooms</mat-toolbar>
+  <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+    [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
+    <mat-toolbar>PLING!</mat-toolbar>
     <mat-nav-list>
-      <a mat-list-item [routerLink]="['room', 'general']" routerLinkActive="router-link-active">
+      <a mat-list-item>
+        <mat-icon>add</mat-icon>New Room
+      </a>
+      <hr>
+      <a mat-list-item [routerLink]="['room', 'general']" routerLinkActive="active">
         <mat-icon>videocam</mat-icon> General
       </a>
-      <app-user-list></app-user-list>
-      <a mat-list-item [routerLink]="['room', 'Nico']" routerLinkActive="router-link-active">
-        <mat-icon>videocam</mat-icon> Nico
+      <a mat-list-item [routerLink]="['room', 'games']" routerLinkActive="active">
+        <mat-icon>videocam</mat-icon> Games
       </a>
-      <a mat-list-item><mat-icon>add</mat-icon>New Room</a>
+      <hr>
+      <app-user-list></app-user-list>
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
-    <mat-toolbar color="primary">
-      <button
-        type="button"
-        aria-label="Toggle sidenav"
-        mat-icon-button
-        (click)="drawer.toggle()">
-        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
-      </button>
-      <span>PLING !</span>
-    </mat-toolbar>
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

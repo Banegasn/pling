@@ -26,13 +26,16 @@ export class RoomService implements OnDestroy {
   constructor(
     private _socket: SocketioService
   ) {
+    const settings = JSON.parse(localStorage.getItem('settings'));
+    const user = { name: settings.name };
     // when socket disconnects, send join room message again next time it reconnects
     this._socket.connected$.pipe(filter(connected => !!connected))
     .pipe(
       switchMap(() => this.room$.pipe(filter(room => room != null))),
       takeUntil(this._onDestroy$)
     ).subscribe((room) => {
-      this._socket.emit(RoomMessage.JoinRoom, {room});
+      this.clearRoomies();
+      this._socket.emit(RoomMessage.JoinRoom, {room, user});
     });
 
     // listen to users joining and leaving current room
@@ -56,9 +59,8 @@ export class RoomService implements OnDestroy {
   }
 
   leaveRoom(room: string): void {
+    this.clearRoomies();
     this._users.next([]);
-    this._roomies.getValue().forEach(roomie => roomie.stream.getTracks().forEach((track) => track.stop()));
-    this._roomies.next([]);
     this._room.next(null);
     this._socket.emit(RoomMessage.LeaveRoom, {room});
   }
@@ -67,6 +69,11 @@ export class RoomService implements OnDestroy {
     if ( !this._roomies.getValue().find(elem => elem.id === roomie.id) ){
       this._roomies.next(this._roomies.getValue().concat(roomie));
     }
+  }
+
+  clearRoomies(): void {
+    this._roomies.getValue().forEach(roomie => roomie.stream.getTracks().forEach((track) => track.stop()));
+    this._roomies.next([]);
   }
 
   deleteRoomie(id: string): void {

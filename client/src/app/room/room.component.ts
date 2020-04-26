@@ -7,6 +7,7 @@ import { StreamService } from '../core/services/stream/stream.service';
 import { RoomService } from './services/room.service';
 import { UserVideoConstraints } from './models/userVideoConstraints';
 import { ScreenCaptureConstraints } from './models/screenCaptureConstraints';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-room',
@@ -16,7 +17,6 @@ import { ScreenCaptureConstraints } from './models/screenCaptureConstraints';
 })
 export class RoomComponent implements OnDestroy, OnInit {
 
-  private room$: Observable<string>;
   private room: string = null;
   private screenSharing: BehaviorSubject<MediaStream> = new BehaviorSubject(null);
 
@@ -29,7 +29,8 @@ export class RoomComponent implements OnDestroy, OnInit {
     private _room: RoomService,
     private _webRTC: WebRTCService,
     private _route: ActivatedRoute,
-    private _videoStream: StreamService
+    private _videoStream: StreamService,
+    private _titleService: Title
   ) { }
 
   ngOnInit() {
@@ -46,6 +47,7 @@ export class RoomComponent implements OnDestroy, OnInit {
             this._webRTC.clear();
           }
           this.room = id;
+          this._titleService.setTitle(`Pling! | ${this.room}`);
           this._room.joinRoom(this.room);
           this.stream = stream;
         }
