@@ -57,6 +57,7 @@ export class RoomService implements OnDestroy {
 
   leaveRoom(room: string): void {
     this._users.next([]);
+    this._roomies.getValue().forEach(roomie => roomie.stream.getTracks().forEach((track) => track.stop()));
     this._roomies.next([]);
     this._room.next(null);
     this._socket.emit(RoomMessage.LeaveRoom, {room});
@@ -70,7 +71,7 @@ export class RoomService implements OnDestroy {
 
   deleteRoomie(id: string): void {
     const roomieToDelete = this._roomies.getValue().find(roomie => roomie.id === id);
-    if (roomieToDelete.stream && roomieToDelete.stream.getTracks()) {
+    if (roomieToDelete && roomieToDelete.stream && roomieToDelete.stream.getTracks()) {
       roomieToDelete.stream.getTracks().forEach(track => {
         track.stop();
         roomieToDelete.stream.removeTrack(track);

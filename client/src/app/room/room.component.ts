@@ -1,25 +1,29 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, ParamMap } from '@angular/router';
 import { WebRTCService } from '@core/services/webRTC/webRTC.service';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { shareReplay, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { shareReplay, tap, map, takeUntil, switchMap, take } from 'rxjs/operators';
 import { StreamService } from '../core/services/stream/stream.service';
 import { RoomService } from './services/room.service';
+import { UserVideoConstraints } from './models/userVideoConstraints';
+import { ScreenCaptureConstraints } from './models/screenCaptureConstraints';
 
 @Component({
-  selector: 'app-call',
+  selector: 'app-room',
   templateUrl: './room.component.html',
   styleUrls: ['./room.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RoomComponent implements OnDestroy, OnInit {
 
+  private room$: Observable<string>;
   private room: string = null;
   private screenSharing: BehaviorSubject<MediaStream> = new BehaviorSubject(null);
 
   roomies$: Observable<any>;
   screenStream = this.screenSharing.asObservable().pipe(shareReplay());
   stream: MediaStream;
+  _onDestroy = new Subject();
 
   constructor(
     private _room: RoomService,
@@ -29,22 +33,26 @@ export class RoomComponent implements OnDestroy, OnInit {
   ) { }
 
   ngOnInit() {
-    this.room = this._route.snapshot.paramMap.get('id');
-    this._videoStream.getStream$({
-      audio: true,
-      video: {
-        height: {
-          max: 480
-        },
-        frameRate: {
-          max: 12
+
+    this._webRTC.start();
+
+    this._route.paramMap.pipe(
+      map((params: ParamMap) => params.get('id')),
+      switchMap((id) => this._videoStream.getStream$(UserVideoConstraints).pipe(
+        take(1),
+        tap((stream) => {
+          if (this.room !== null && this.room !== id) {
+            this._room.leaveRoom(this.room);
+            this._webRTC.clear();
+          }
+          this.room = id;
+          this._room.joinRoom(this.room);
+          this.stream = stream;
         }
-      }
-    }).subscribe((stream) => {
-      this.stream = stream;
-      this._webRTC.start();
-      this._room.joinRoom(this.room);
-    });
+      ))),
+      takeUntil(this._onDestroy)
+    ).subscribe();
+
     this.roomies$ = this._room.roomies$.pipe(tap(console.log));
   }
 
@@ -53,6 +61,8 @@ export class RoomComponent implements OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
+    this._onDestroy.next();
+    this._onDestroy.complete();
     this._room.leaveRoom(this.room);
   }
 
@@ -78,16 +88,14 @@ export class RoomComponent implements OnDestroy, OnInit {
         .forEach(track => track.stop());
       return this.screenSharing.next(null);
     }
-    const displayMediaOptions = {
-      video: true,
-      audio: false
-    };
     const mediaDevices = navigator.mediaDevices as any;
-    mediaDevices.getDisplayMedia(displayMediaOptions).then((stream: MediaStream) => {
+    mediaDevices.getDisplayMedia(ScreenCaptureConstraints).then((stream: MediaStream) => {
       this.screenSharing.next(stream);
       stream.getVideoTracks()[0].onended = () => {
         this.screenSharing.next(null);
       };
+    }, (error) => {
+      console.log('error setting screen sharing', error);
     });
   }
 }

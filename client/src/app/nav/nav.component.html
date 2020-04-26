@@ -9,6 +9,9 @@
         <mat-icon>videocam</mat-icon> General
       </a>
       <app-user-list></app-user-list>
+      <a mat-list-item [routerLink]="['room', 'Nico']" routerLinkActive="router-link-active">
+        <mat-icon>videocam</mat-icon> Nico
+      </a>
       <a mat-list-item><mat-icon>add</mat-icon>New Room</a>
     </mat-nav-list>
   </mat-sidenav>
@@ -18,11 +21,10 @@
         type="button"
         aria-label="Toggle sidenav"
         mat-icon-button
-        (click)="drawer.toggle()"
-        *ngIf="isHandset$ | async">
+        (click)="drawer.toggle()">
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
       </button>
-      <span>PLING</span>
+      <span>PLING !</span>
     </mat-toolbar>
     <router-outlet></router-outlet>
   </mat-sidenav-content>

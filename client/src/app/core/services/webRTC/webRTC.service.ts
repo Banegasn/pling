@@ -1,21 +1,13 @@
 import { Injectable } from '@angular/core';
+import { SocketioService } from '@core/services/socket.io/socket.io.service';
 import { forkJoin, Observable } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
-import { SocketioService } from 'src/app/core/services/socket.io/socket.io.service';
+import { mergeMap, tap, take } from 'rxjs/operators';
 import { RoomEvent } from '../../../room/models/roomUserJoin';
 import { RoomService } from '../../../room/services/room.service';
 import { StreamService } from '../stream/stream.service';
-import { setMediaBitrate } from './webRTC.utils';
-
-const RTC_PEER_MESSAGE_SDP_OFFER = 'sdp-offer';
-const RTC_PEER_MESSAGE_SDP_ANSWER = 'sdp-answer';
-const RTC_PEER_MESSAGE_ICE = 'ice';
-const RTC_PEER_CONFIG = {
-  iceServers: [
-    { urls: 'stun:stun.services.mozilla.com' },
-    { urls: 'stun:stun.l.google.com:19302' }
-  ]
-};
+import { WebRTCPeerConfig } from './models/webRTC.config';
+import { WebRTCPeerMessage } from './models/webRTC.messages';
+import { setMediaBitrate } from './utils/webRTC.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +34,7 @@ export class WebRTCService {
       tap(data => {
         this._room.deleteRoomie(data.id);
         this._peerConnections.get(data.id).close();
+        this._peerConnections.set(data.id, null);
         this._peerConnections.delete(data.id);
       })
     );
@@ -53,6 +46,7 @@ export class WebRTCService {
   start() {
     this._videoSrv.stream$
     .pipe(
+      take(1),
       tap(stream => this.myStream = stream),
       mergeMap(() => forkJoin([
         this._userJoined$,
@@ -60,6 +54,16 @@ export class WebRTCService {
         this._listenRTCMessages$
       ])),
     ).subscribe();
+  }
+
+  clear() {
+    this._peerConnections.forEach((peer, id) => {
+      this._room.deleteRoomie(id);
+      peer.close();
+      peer = null;
+      this._peerConnections.delete(id);
+    });
+    this._peerConnections.clear();
   }
 
   private messageRTC(data: any): void {
@@ -70,19 +74,20 @@ export class WebRTCService {
     return this._socket.listen$('peer-message');
   }
 
-  private handleRTCPeerMessage(message: any) {
+  private handleRTCPeerMessage(message: any): void {
 
     const peerConnection = this.getPeerConnection(message.by);
 
     switch ( message.type ) {
-      case RTC_PEER_MESSAGE_SDP_OFFER:
+      case WebRTCPeerMessage.SDP_OFFER:
+        console.log(message.by);
         peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp)).then(() => {
           console.log('<--- Setting remote description by offer');
           this.sendAnswer(peerConnection, message.by);
         }).catch(err => {console.error('Error on SDP-Offer:', err); });
         break;
 
-      case RTC_PEER_MESSAGE_SDP_ANSWER:
+      case WebRTCPeerMessage.SDP_ANSWER:
         peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp)).then(() =>
           console.log('<--- Setting remote description by answer')
         ).catch(err => {
@@ -90,7 +95,7 @@ export class WebRTCService {
         });
         break;
 
-      case RTC_PEER_MESSAGE_ICE:
+      case WebRTCPeerMessage.ICE:
         console.log('<--- Adding ice candidate');
         peerConnection.addIceCandidate(new RTCIceCandidate(message.ice));
         break;
@@ -106,7 +111,7 @@ export class WebRTCService {
     console.log('creating RTCPeerConnection', {id, local: this._socket.id});
 
     // creates RTCPeerConnection object
-    const peerConnection = new RTCPeerConnection(RTC_PEER_CONFIG);
+    const peerConnection = new RTCPeerConnection(WebRTCPeerConfig.configuration);
     this._peerConnections.set(id, peerConnection);
 
     // received track
@@ -117,7 +122,7 @@ export class WebRTCService {
     // sends ice candidates
     peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       if (event.candidate) {
-        this.messageRTC({to: id, ice: event.candidate, type: RTC_PEER_MESSAGE_ICE});
+        this.messageRTC({to: id, ice: event.candidate, type: WebRTCPeerMessage.ICE});
       }
     };
 
@@ -141,19 +146,19 @@ export class WebRTCService {
     console.log('%c---> sending offer to', 'color: green; font-weight: bold;', to);
     peer.createOffer().then(offer => {
       peer.setLocalDescription(offer).then(() => {
-        offer.sdp = setMediaBitrate(offer.sdp, 'video', 200);
-        offer.sdp = setMediaBitrate(offer.sdp, 'audio', 30);
-        this.messageRTC({to, sdp: offer, type: RTC_PEER_MESSAGE_SDP_OFFER});
+        offer.sdp = setMediaBitrate(offer.sdp, 'video', WebRTCPeerConfig.videoBitrate);
+        offer.sdp = setMediaBitrate(offer.sdp, 'audio', WebRTCPeerConfig.audioBitrate);
+        this.messageRTC({to, sdp: offer, type: WebRTCPeerMessage.SDP_OFFER});
       });
     });
   }
 
-  private sendAnswer(peer: RTCPeerConnection, to: string) {
+  private sendAnswer(peer: RTCPeerConnection, to: string): void {
     console.log('%c---> sending answer to', 'color: green; font-weight: bold;', to);
     peer.createAnswer().then(sdp => {
       peer.setLocalDescription(sdp).then(() => {
         this.messageRTC({
-          to, sdp, type: RTC_PEER_MESSAGE_SDP_ANSWER
+          to, sdp, type: WebRTCPeerMessage.SDP_ANSWER
         });
       });
     });

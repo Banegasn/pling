@@ -7,7 +7,7 @@ import { TextToastComponent } from './templates/text-toast.component';
 })
 export class ToastService {
 
-  durationInSeconds = 5;
+  durationInSeconds = 3;
 
   constructor(private _snackBar: MatSnackBar) {}
 
