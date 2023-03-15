@@ -9,6 +9,9 @@ COPY . /app
 
 # Install the application dependencies
 RUN npm install
+
+COPY . /app
+
 ENV PORT 8080
 EXPOSE 8080
 
