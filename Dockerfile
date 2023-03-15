@@ -1,13 +1,17 @@
-FROM node:12 AS builder
-WORKDIR /app
-COPY . .
-RUN npm install
-RUN npm run build
+# Use the official Node.js image as the base image
+FROM node:12
 
-FROM node:12 AS final
+# Set the working directory in the container
 WORKDIR /app
-COPY --from=builder ./app/dist ./dist
-COPY package.json .
-COPY package-lock.json .
-RUN npm install --production
-CMD [ "npm", "start" ]
+
+# Copy the application files into the working directory
+COPY . /app
+
+# Install the application dependencies
+RUN npm install
+
+ENV PORT 8080
+EXPOSE 8080
+
+# Define the entry point for the container
+CMD ["npm", "start"]
