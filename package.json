@@ -6,11 +6,14 @@
     "dev-back": "cd backend && npm run dev",
     "dev-client": "cd client && ng serve --open",
     "dev": "concurrently \"npm run dev-back\" \"npm run dev-client\"",
+    "build-back": "cd backend && npm run build",
+    "build-client": "cd client && npm run build",
+    "install-back": "cd backend && npm install",
+    "install-client": "cd client && npm install",
+    "prestart": "concurrently \"npm run build-back\" \"npm run build-client\"",
     "start": "cd backend && npm start",
-    "build-back": "cd backend && npm build",
-    "build-client": "cd client && npm build",
-    "build": "npm run build-back && npm run build-client",
-    "postinstall": "cd backend && npm install && cd ../client && npm install"
+    "build": "concurrently \"npm run build-back\" \"npm run build-client\"",
+    "postinstall": "concurrently \"npm run install-back\" \"npm run install-client\""
   },
   "engines": {
     "node": "^12.16.0",

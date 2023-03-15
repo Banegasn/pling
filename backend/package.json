@@ -4,10 +4,9 @@
   "description": "Meeting server app",
   "main": "index.js",
   "scripts": {
-    "tsc": "tsc",
     "start": "node ./dist/index.js",
     "dev": "nodemon src/index.ts",
-    "postinstall": "tsc"
+    "build": "tsc"
   },
   "author": "Nico Banegas",
   "license": "ISC",
