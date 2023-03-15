@@ -8,7 +8,9 @@ WORKDIR /app
 COPY . /app
 
 # Install the application dependencies
+RUN npm set unsafe-perm true
 RUN npm install
+RUN npm run build 
 
 ENV PORT 8080
 EXPOSE 8080
