@@ -10,7 +10,6 @@
     "build-client": "cd client && npm run build",
     "install-back": "cd backend && npm install",
     "install-client": "cd client && npm install",
-    "prestart": "concurrently \"npm run build-back\" \"npm run build-client\"",
     "start": "cd backend && npm start",
     "build": "concurrently \"npm run build-back\" \"npm run build-client\"",
     "postinstall": "concurrently \"npm run install-back\" \"npm run install-client\""
